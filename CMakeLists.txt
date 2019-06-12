@@ -8,6 +8,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_FLAGS "-std=c++11 -Ofast")
 
 find_package(Eigen3 REQUIRED)
+find_package(yaml-cpp REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
@@ -65,15 +66,33 @@ ELSE()
   MESSAGE(WARNING "nlopt not found, building without point to bearing nodelet")
 ENDIF()
 
+add_library(${PROJECT_NAME}_lib
+        src/stereo_info.cpp
+        src/stereo_undistort.cpp
+        src/depth.cpp
+        src/camera_parameters.cpp
+        src/image_undistort.cpp
+        src/undistorter.cpp
+#        src/point_to_bearing.cpp
+        src/ros-free/stereo_dense.cpp)
+
+
 include_directories(
   include
   ${EIGEN3_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
+        ${YAML_CPP_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME}_nodelet
   ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
 )
+
+target_link_libraries(${PROJECT_NAME}_lib
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
+        )
+
+
 add_dependencies(${PROJECT_NAME}_nodelet ${catkin_EXPORTED_TARGETS})
 
 add_executable(image_undistort_node src/nodes/image_undistort_node.cpp)
@@ -100,6 +119,14 @@ add_executable(dense_stereo_node src/nodes/dense_stereo_node.cpp)
 target_link_libraries(dense_stereo_node
   ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
 )
+
+
+
+add_executable(stereo_dense_node src/ros-free/stereo_dense_node.cpp)
+target_link_libraries(stereo_dense_node
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${YAML_CPP_LIBRARIES}
+        ${PROJECT_NAME}_lib
+        )
 
 IF(${NLOPT_FOUND})
   add_executable(point_to_bearing_node src/nodes/point_to_bearing_node.cpp)
