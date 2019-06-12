@@ -99,6 +99,9 @@ ImageUndistort::ImageUndistort(const ros::NodeHandle& nh,
 
   // setup subscribers
   std::string input_camera_namespace;
+
+    ROS_ERROR("input_camera_info_from_ros_params %d", input_camera_info_from_ros_params);
+
   if (input_camera_info_from_ros_params) {
     nh_private_.param("input_camera_namespace", input_camera_namespace,
                       kDefaultInputCameraNamespace);
@@ -114,6 +117,7 @@ ImageUndistort::ImageUndistort(const ros::NodeHandle& nh,
     camera_sub_ = it_.subscribeCamera("input/image", queue_size_,
                                       &ImageUndistort::cameraCallback, this);
   }
+
 
   // setup publishers
   if (process_image_) {
@@ -150,10 +154,27 @@ ImageUndistort::ImageUndistort(const ros::NodeHandle& nh,
     camera_info_pub_ = nh_.advertise<sensor_msgs::CameraInfo>(
         "output/camera_info", queue_size_);
   }
+
+
+    try {
+        ROS_ERROR("try to ");
+        undistorter_ptr_ =
+                std::make_shared<Undistorter>(*camera_parameters_pair_ptr_);
+    } catch (std::runtime_error e) {
+        ROS_ERROR("%s", e.what());
+        return;
+    }
+
+
+
 }
 
 void ImageUndistort::imageCallback(
     const sensor_msgs::ImageConstPtr& image_msg_in) {
+
+        ROS_ERROR("cameraCallback");
+
+
   if (++frame_counter_ < process_every_nth_frame_) {
     return;
   }
@@ -185,64 +206,66 @@ void ImageUndistort::imageCallback(
   cv_bridge::CvImagePtr image_out_ptr(
       new cv_bridge::CvImage(image_in_ptr->header, encoding));
 
-  // if undistorter not built or built using old data update it
-  if (!undistorter_ptr_ || (undistorter_ptr_->getCameraParametersPair() !=
-                            *camera_parameters_pair_ptr_)) {
-    try {
-      undistorter_ptr_ =
-          std::make_shared<Undistorter>(*camera_parameters_pair_ptr_);
-    } catch (std::runtime_error e) {
-      ROS_ERROR("%s", e.what());
-      return;
-    }
-  }
+//  // if undistorter not built or built using old data update it
+//  if (!undistorter_ptr_ || (undistorter_ptr_->getCameraParametersPair() !=
+//                            *camera_parameters_pair_ptr_)) {
+//    try {
+//        ROS_ERROR("try to ");
+//      undistorter_ptr_ =
+//          std::make_shared<Undistorter>(*camera_parameters_pair_ptr_);
+//    } catch (std::runtime_error e) {
+//      ROS_ERROR("%s", e.what());
+//      return;
+//    }
+//  }
 
-  undistorter_ptr_->undistortImage(image_in_ptr->image,
-                                   &(image_out_ptr->image));
-
-  image_out_ptr->header.frame_id = output_frame_;
-
-
-  if (publish_tf_) {
-    Eigen::Matrix4d T =
-        camera_parameters_pair_ptr_->getInputPtr()->T().inverse() *
-        camera_parameters_pair_ptr_->getOutputPtr()->T();
-
-    tf::Matrix3x3 R_ros;
-    tf::Vector3 p_ros;
-    tf::matrixEigenToTF(T.topLeftCorner<3, 3>(), R_ros);
-    tf::vectorEigenToTF(T.topRightCorner<3, 1>(), p_ros);
-    tf::Transform(R_ros, p_ros);
-
-    std::string frame = image_in_ptr->header.frame_id;
-    if (rename_input_frame_) {
-      frame = input_frame_;
-    }
-    if (frame.empty()) {
-      ROS_ERROR_ONCE("Image frame name is blank, cannot construct tf");
-    } else {
-      br_.sendTransform(tf::StampedTransform(tf::Transform(R_ros, p_ros),
-                                             image_out_ptr->header.stamp, frame,
-                                             output_frame_));
-    }
-  }
-
-  // if camera info was just read in from a topic don't republish it
-  if (output_camera_info_source_ == OutputInfoSource::CAMERA_INFO) {
-    image_pub_.publish(*(image_out_ptr->toImageMsg()));
-  } else {
-    sensor_msgs::CameraInfo camera_info;
-    camera_info.header = image_out_ptr->header;
-    if (rename_input_frame_) {
-      camera_info.header.frame_id = input_frame_;
-    }
-    camera_parameters_pair_ptr_->generateCameraInfoMessage(CameraIO::OUTPUT,
-                                                           &camera_info);
-    if (rename_radtan_plumb_bob_ && camera_info.distortion_model == "radtan") {
-      camera_info.distortion_model = "plumb_bob";
-    }
-    camera_pub_.publish(*(image_out_ptr->toImageMsg()), camera_info);
-  }
+    ROS_ERROR("undistorter_ptr_ %d  ", undistorter_ptr_ == nullptr);
+//  undistorter_ptr_->undistortImage(image_in_ptr->image,
+//                                   &(image_out_ptr->image));
+//
+//  image_out_ptr->header.frame_id = output_frame_;
+//
+//
+//  if (publish_tf_) {
+//    Eigen::Matrix4d T =
+//        camera_parameters_pair_ptr_->getInputPtr()->T().inverse() *
+//        camera_parameters_pair_ptr_->getOutputPtr()->T();
+//
+//    tf::Matrix3x3 R_ros;
+//    tf::Vector3 p_ros;
+//    tf::matrixEigenToTF(T.topLeftCorner<3, 3>(), R_ros);
+//    tf::vectorEigenToTF(T.topRightCorner<3, 1>(), p_ros);
+//    tf::Transform(R_ros, p_ros);
+//
+//    std::string frame = image_in_ptr->header.frame_id;
+//    if (rename_input_frame_) {
+//      frame = input_frame_;
+//    }
+//    if (frame.empty()) {
+//      ROS_ERROR_ONCE("Image frame name is blank, cannot construct tf");
+//    } else {
+//      br_.sendTransform(tf::StampedTransform(tf::Transform(R_ros, p_ros),
+//                                             image_out_ptr->header.stamp, frame,
+//                                             output_frame_));
+//    }
+//  }
+//
+//  // if camera info was just read in from a topic don't republish it
+//  if (output_camera_info_source_ == OutputInfoSource::CAMERA_INFO) {
+//    image_pub_.publish(*(image_out_ptr->toImageMsg()));
+//  } else {
+//    sensor_msgs::CameraInfo camera_info;
+//    camera_info.header = image_out_ptr->header;
+//    if (rename_input_frame_) {
+//      camera_info.header.frame_id = input_frame_;
+//    }
+//    camera_parameters_pair_ptr_->generateCameraInfoMessage(CameraIO::OUTPUT,
+//                                                           &camera_info);
+//    if (rename_radtan_plumb_bob_ && camera_info.distortion_model == "radtan") {
+//      camera_info.distortion_model = "plumb_bob";
+//    }
+//    camera_pub_.publish(*(image_out_ptr->toImageMsg()), camera_info);
+//  }
 }
 
 void ImageUndistort::cameraCallback(

@@ -166,7 +166,11 @@ InputCameraParameters::InputCameraParameters(
         stringToDistortion(distortion_model_in, camera_model_in);
   }
 
-  std::vector<double> intrinsics_in;
+    ROS_ERROR("distortion_model_in %s", distortion_model_in.c_str());
+    ROS_ERROR("camera_model_in %s", camera_model_in.c_str());
+
+
+    std::vector<double> intrinsics_in;
   if (nh.getParam(camera_namespace + "/intrinsics", intrinsics_in)) {
     if (intrinsics_in.size() > 4) {
       D_.push_back(intrinsics_in[0]);

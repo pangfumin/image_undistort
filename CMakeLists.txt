@@ -44,7 +44,8 @@ IF(${NLOPT_FOUND})
   src/camera_parameters.cpp 
   src/image_undistort.cpp 
   src/undistorter.cpp
-  src/point_to_bearing.cpp)
+  src/point_to_bearing.cpp
+          src/ros-free/stereo_dense.cpp)
 
 ELSE()
 
@@ -58,7 +59,8 @@ ELSE()
   src/depth.cpp
   src/camera_parameters.cpp 
   src/image_undistort.cpp 
-  src/undistorter.cpp)
+  src/undistorter.cpp
+          src/ros-free/stereo_dense.cpp)
 
   MESSAGE(WARNING "nlopt not found, building without point to bearing nodelet")
 ENDIF()
