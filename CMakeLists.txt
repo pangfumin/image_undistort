@@ -74,7 +74,9 @@ add_library(${PROJECT_NAME}_lib
         src/image_undistort.cpp
         src/undistorter.cpp
 #        src/point_to_bearing.cpp
-        src/ros-free/stereo_dense.cpp)
+        src/ros-free/stereo_dense.cpp
+        src/ros-free/file-system-tools.cpp
+        )
 
 
 include_directories(

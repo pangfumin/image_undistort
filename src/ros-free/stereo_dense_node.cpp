@@ -1,7 +1,10 @@
 #include <iostream>
 #include "image_undistort/stereo_dense.h"
+#include "file-system-tools.h"
 
 #include <yaml-cpp/yaml.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 void loadCameraParamsFromYamlNode(const YAML::Node& node, cv::Size& res,
                                   Eigen::Matrix<double, 4, 4>& T,
@@ -50,6 +53,54 @@ int main (int argc, char** argv) {
     image_undistort::DistortionModel distortion_model0, distortion_model1;
     loadCameraParamsFromYamlNode(node0, resolution0, T0, K0, D0, distortion_model0);
     loadCameraParamsFromYamlNode(node1, resolution1, T1, K1, D1, distortion_model1);
+    left_camera_param_pair.setInputCameraParameters(resolution0, T0, K0, D0, distortion_model0);
+    right_camera_param_pair.setInputCameraParameters(resolution1, T1, K1, D1, distortion_model1);
+
+    left_camera_param_pair.setOutputCameraParameters(resolution0, T0, K0);
+    left_camera_param_pair.setOutputCameraParameters(resolution0, T0, K1);
+
+
+
+
+    const std::string image0_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_1R_recorder";
+    const std::string image1_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_1R_recorder";
+
+    std::vector<std::string> left_image_filenames;
+    std::vector<std::string> right_image_filenames;
+    /// image0
+    common::getAllFilesInFolder(image0_path, &left_image_filenames);
+    std::cout<<"image0_list: " << left_image_filenames.size() << std::endl;
+
+    std::sort(left_image_filenames.begin(),left_image_filenames.end(), [](std::string a, std::string b) {
+        return !common::compareNumericPartsOfStrings(a,b);
+    });
+
+    /// image1
+    common::getAllFilesInFolder(image1_path, &right_image_filenames);
+    std::cout<<"image1_list: " << right_image_filenames.size() << std::endl;
+    std::sort(right_image_filenames.begin(),right_image_filenames.end(), [](std::string a, std::string b) {
+        return !common::compareNumericPartsOfStrings(a,b);
+    });
+
+
+    image_undistort::StereoDense stereoDense(left_camera_param_pair, left_camera_param_pair);
+
+    for (int i=0; i < right_image_filenames.size(); i++ ) {
+        std::cout << right_image_filenames.at(i) << std::endl;
+        cv::Mat left_image = cv::imread(left_image_filenames.at(i), CV_LOAD_IMAGE_GRAYSCALE);
+        cv::Mat right_image = cv::imread(right_image_filenames.at(i), CV_LOAD_IMAGE_GRAYSCALE);
+
+
+        cv::Mat left_undistorted = stereoDense.undistort(left_image);
+        cv::Mat right_undistorted = stereoDense.undistort(right_image);
+
+        cv::imshow("left", left_image);
+        cv::imshow("left_undistorted", left_undistorted);
+        cv::imshow("right", right_image);
+        cv::imshow("right_undistorted", right_undistorted);
+        cv::waitKey(300);
+    }
+
 
 
 

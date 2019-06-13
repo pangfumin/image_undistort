@@ -8,12 +8,14 @@ namespace  image_undistort {
         StereoDense(const CameraParametersPair& left_camera_param_pair,
                     const CameraParametersPair& right_camera_param_pair);
 
+        cv::Mat undistort(const cv::Mat& image);
+
     private:
         CameraParametersPair left_camera_param_pair_;
         CameraParametersPair right_camera_param_pair_;
 
-//        Undistorter left_undistorter_;
-//        Undistorter right_undistorter_;
+        Undistorter left_undistorter_;
+        Undistorter right_undistorter_;
 
 
         // cache
