@@ -18,6 +18,9 @@ namespace  image_undistort{
         void undistortStereo(const cv::Mat& image0, const cv::Mat& image1,
                 cv::Mat& image_undistort0, cv::Mat& image_undistort1);
 
+        void rectifyStereo(const cv::Mat& image_undistort0, const cv::Mat& image_undistort1,
+                cv::Mat& image0_rect, cv::Mat& image1_rect);
+
     private:
         CameraParametersPair left_camera_param_pair_;
         CameraParametersPair right_camera_param_pair_;

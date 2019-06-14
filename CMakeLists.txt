@@ -130,6 +130,18 @@ target_link_libraries(stereo_dense_node
         ${PROJECT_NAME}_lib
         )
 
+add_executable(stereo_calib_node src/ros-free/stereo_calib.cpp)
+target_link_libraries(stereo_calib_node
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${YAML_CPP_LIBRARIES}
+        ${PROJECT_NAME}_lib
+        )
+
+add_executable(tool_list_image src/ros-free/tool_list_image.cpp)
+target_link_libraries(tool_list_image
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${YAML_CPP_LIBRARIES}
+        ${PROJECT_NAME}_lib
+        )
+
 IF(${NLOPT_FOUND})
   add_executable(point_to_bearing_node src/nodes/point_to_bearing_node.cpp)
   target_link_libraries(point_to_bearing_node

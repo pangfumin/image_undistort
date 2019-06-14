@@ -72,8 +72,10 @@ namespace  image_undistort {
 
         cv::Mat R0, R1, P0, P1, Q;
         cv::Mat R, t;
-        Eigen::Matrix3d R_cam1_cam0 = right_camera_param_pair_.getInputPtr()->T().topLeftCorner(3,3);
-        Eigen::Vector3d t_cam1_cam0 = right_camera_param_pair_.getInputPtr()->T().topRightCorner(3,1);
+        Eigen::Matrix4d T_cam1_cam0 = right_camera_param_pair_.getInputPtr()->T();
+        Eigen::Matrix3d R_cam1_cam0 = T_cam1_cam0.topLeftCorner(3,3);
+        Eigen::Vector3d t_cam1_cam0 = T_cam1_cam0.topRightCorner(3,1);
+
         cv::eigen2cv(R_cam1_cam0, R);
         cv::eigen2cv(t_cam1_cam0, t);
 
@@ -83,6 +85,14 @@ namespace  image_undistort {
         cv::initUndistortRectifyMap(K1,cv::Mat(),R1_,P1_,output_resolution_,CV_32F,M1r_,M2r_);
 
     }
+
+    void StereoDense::rectifyStereo(const cv::Mat& image_undistort0, const cv::Mat& image_undistort1,
+                       cv::Mat& image0_rect, cv::Mat& image1_rect) {
+        cv::remap(image_undistort0,image0_rect,M1l_,M2l_,cv::INTER_LINEAR);
+        cv::remap(image_undistort1,image1_rect,M1r_,M2r_,cv::INTER_LINEAR);
+    }
+
+//
 
     void StereoDense::undistortStereo(const cv::Mat& image0, const cv::Mat& image1,
                          cv::Mat& image_undistort0, cv::Mat& image_undistort1) {

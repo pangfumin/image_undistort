@@ -100,13 +100,24 @@ int main (int argc, char** argv) {
 
         cv::Mat left_undistorted ;
         cv::Mat right_undistorted;
-        stereoDense.undistortStereo(left_image, right_image, left_undistorted, right_undistorted);
 
-        cv::imshow("left", left_image);
+        cv::Mat left_rect ;
+        cv::Mat right_rect;
+
+        stereoDense.undistortStereo(left_image, right_image, left_undistorted, right_undistorted);
+        stereoDense.rectifyStereo(left_undistorted, right_undistorted, left_rect, right_rect);
+
+
+        cv::Mat merge = 0.5 * left_rect + 0.5 *right_rect;
+
+//        cv::imshow("left", left_image);
         cv::imshow("left_undistorted", left_undistorted);
-        cv::imshow("right", right_image);
+        cv::imshow("left_rect", left_rect);
+//        cv::imshow("right", right_image);
         cv::imshow("right_undistorted", right_undistorted);
-        cv::waitKey(300);
+        cv::imshow("right_rect", right_rect);
+        cv::imshow("merge", merge);
+        cv::waitKey(30000);
     }
 
 
