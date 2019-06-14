@@ -601,6 +601,7 @@ bool StereoCameraParameters::setInputCameraParameters(
     }
     if (valid(CameraSide::FIRST, CameraIO::INPUT) &&
         valid(CameraSide::SECOND, CameraIO::INPUT)) {
+        std::cout << "generateRectificationParameters" << std::endl;
       generateRectificationParameters();
     }
     return true;
@@ -640,6 +641,7 @@ bool StereoCameraParameters::generateRectificationParameters() {
     return false;
   }
 
+  std::cout << "1" << std::endl;
   // twist inputs to align on x axis
   Eigen::Vector3d x = first_.getInputPtr()->p() - second_.getInputPtr()->p();
   Eigen::Vector3d y = first_.getInputPtr()->R().col(2).cross(x);
@@ -648,7 +650,9 @@ bool StereoCameraParameters::generateRectificationParameters() {
   Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
   T.topLeftCorner<3, 3>() << x.normalized(), y.normalized(), z.normalized();
 
-  // took wrong camera as left (redo other way round)
+    std::cout << "2" << std::endl;
+
+    // took wrong camera as left (redo other way round)
   if (T(0, 0) < 0) {
     x = second_.getInputPtr()->p() - first_.getInputPtr()->p();
     y = second_.getInputPtr()->R().col(2).cross(x);
@@ -656,23 +660,31 @@ bool StereoCameraParameters::generateRectificationParameters() {
     T.topLeftCorner<3, 3>() << x.normalized(), y.normalized(), z.normalized();
   }
 
-  first_.setInputCameraParameters(
+    std::cout << "3" << std::endl;
+
+    first_.setInputCameraParameters(
       first_.getInputPtr()->resolution(),
       T.inverse() * first_.getInputPtr()->T(), first_.getInputPtr()->K(),
       first_.getInputPtr()->D(), first_.getInputPtr()->distortionModel());
-  second_.setInputCameraParameters(
+    std::cout << "4" << std::endl;
+
+    second_.setInputCameraParameters(
       second_.getInputPtr()->resolution(),
       T.inverse() * second_.getInputPtr()->T(), second_.getInputPtr()->K(),
       second_.getInputPtr()->D(), second_.getInputPtr()->distortionModel());
 
-  // set individual outputs
+    std::cout << "5" << std::endl;
+
+    // set individual outputs
   if (!first_.setOptimalOutputCameraParameters(scale_) ||
       !second_.setOptimalOutputCameraParameters(scale_)) {
     ROS_ERROR("Automatic generation of stereo output parameters failed");
     return false;
   }
 
-  // grab most conservative values
+    std::cout << "6" << std::endl;
+
+    // grab most conservative values
   cv::Size resolution(std::min(first_.getOutputPtr()->resolution().width,
                                second_.getOutputPtr()->resolution().width),
                       std::min(first_.getOutputPtr()->resolution().height,
@@ -686,7 +698,9 @@ bool StereoCameraParameters::generateRectificationParameters() {
   K(1, 2) = static_cast<double>(resolution.height) / 2.0;
   K(2, 2) = 1;
 
-  // set the new consistent outputs
+    std::cout << "7" << std::endl;
+
+    // set the new consistent outputs
   if (!first_.setOutputCameraParameters(resolution, first_.getOutputPtr()->T(),
                                         K) ||
       !second_.setOutputCameraParameters(resolution,

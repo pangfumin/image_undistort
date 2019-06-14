@@ -53,11 +53,10 @@ int main (int argc, char** argv) {
     image_undistort::DistortionModel distortion_model0, distortion_model1;
     loadCameraParamsFromYamlNode(node0, resolution0, T0, K0, D0, distortion_model0);
     loadCameraParamsFromYamlNode(node1, resolution1, T1, K1, D1, distortion_model1);
+    std::cout << T0 << std::endl;
+    std::cout << T1 << std::endl;
     left_camera_param_pair.setInputCameraParameters(resolution0, T0, K0, D0, distortion_model0);
     right_camera_param_pair.setInputCameraParameters(resolution1, T1, K1, D1, distortion_model1);
-
-    left_camera_param_pair.setOutputCameraParameters(resolution0, T0, K0);
-    left_camera_param_pair.setOutputCameraParameters(resolution0, T0, K1);
 
 
 
@@ -83,7 +82,15 @@ int main (int argc, char** argv) {
     });
 
 
-    image_undistort::StereoDense stereoDense(left_camera_param_pair, left_camera_param_pair);
+    cv::Size output_resolution  = left_camera_param_pair.getInputPtr()->resolution()/2;
+    Eigen::Matrix3d output_K;
+    output_K << K0(0,0)/2, 0, output_resolution.width/2,
+            0, K0(1,1)/2,  output_resolution.height/2,
+            0,0,1;
+
+    image_undistort::StereoDense stereoDense(left_camera_param_pair, right_camera_param_pair,
+                                             output_resolution, output_K);
+
 
     for (int i=0; i < right_image_filenames.size(); i++ ) {
         std::cout << right_image_filenames.at(i) << std::endl;
@@ -91,8 +98,9 @@ int main (int argc, char** argv) {
         cv::Mat right_image = cv::imread(right_image_filenames.at(i), CV_LOAD_IMAGE_GRAYSCALE);
 
 
-        cv::Mat left_undistorted = stereoDense.undistort(left_image);
-        cv::Mat right_undistorted = stereoDense.undistort(right_image);
+        cv::Mat left_undistorted ;
+        cv::Mat right_undistorted;
+        stereoDense.undistortStereo(left_image, right_image, left_undistorted, right_undistorted);
 
         cv::imshow("left", left_image);
         cv::imshow("left_undistorted", left_undistorted);
