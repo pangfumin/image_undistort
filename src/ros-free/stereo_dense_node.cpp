@@ -127,18 +127,24 @@ int main (int argc, char** argv) {
 
 
 
+        cv::Mat disparity, disparity8;
+        stereoDense.calcDisparityImage(left_rect, right_rect, disparity);
+        disparity.convertTo(disparity, CV_32F, 1.0/16);
+        disparity.convertTo(disparity8, CV_8UC1);
+
 
 
 
         cv::Mat merge = drawStereoRectify(left_rect, right_rect);
-//        cv::imshow("left", left_image);
-        cv::imshow("left_undistorted", left_undistorted);
-        cv::imshow("left_rect", left_rect);
-//        cv::imshow("right", right_image);
-        cv::imshow("right_undistorted", right_undistorted);
-        cv::imshow("right_rect", right_rect);
+////        cv::imshow("left", left_image);
+//        cv::imshow("left_undistorted", left_undistorted);
+//        cv::imshow("left_rect", left_rect);
+////        cv::imshow("right", right_image);
+//        cv::imshow("right_undistorted", right_undistorted);
+//        cv::imshow("right_rect", right_rect);
         cv::imshow("merge", merge);
-        cv::waitKey(30000);
+        cv::imshow("disparity8", disparity8);
+        cv::waitKey(1000);
     }
 
 
