@@ -36,8 +36,32 @@ void loadCameraParamsFromYamlNode(const YAML::Node& node, cv::Size& res,
     }
 
 }
+
+cv::Mat drawStereoRectify(const cv::Mat left, const cv::Mat right) {
+    std::vector<cv::Mat> channels;
+    cv::Mat outimg(left.rows, 2*left.cols, CV_8UC3);
+    auto colJump = left.cols;
+    cv::Mat left_rgb = outimg(cv::Rect(0, 0, left.cols, left.rows));
+    cv::Mat right_rgb = outimg(cv::Rect( colJump, 0, left.cols, left.rows));
+
+    cv::cvtColor(left, left_rgb, CV_GRAY2BGR);
+    cv::cvtColor(right, right_rgb, CV_GRAY2BGR);
+
+    int num_line = 10;
+    int row_interval =  left.rows /num_line;
+    for (int i=0; i < num_line; i++) {
+        cv::Point start(0, i * row_interval );
+        cv::Point end(2*left.cols, i * row_interval );
+        cv::line(outimg, start, end, cv::Scalar(255,0,0), 2);
+    }
+
+    return outimg;
+
+}
 int main (int argc, char** argv) {
     std::string fin = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/camchain-cam_stereo.yaml";
+    const std::string image0_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_2L_recorder";
+    const std::string image1_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_1R_recorder";
     YAML::Node yamlConfig = YAML::LoadFile(fin);
     YAML::Node node0  = yamlConfig["cam0"];
     YAML::Node node1  = yamlConfig["cam1"];
@@ -57,12 +81,6 @@ int main (int argc, char** argv) {
     std::cout << T1 << std::endl;
     left_camera_param_pair.setInputCameraParameters(resolution0, T0, K0, D0, distortion_model0);
     right_camera_param_pair.setInputCameraParameters(resolution1, T1, K1, D1, distortion_model1);
-
-
-
-
-    const std::string image0_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_1R_recorder";
-    const std::string image1_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_1R_recorder";
 
     std::vector<std::string> left_image_filenames;
     std::vector<std::string> right_image_filenames;
@@ -108,8 +126,11 @@ int main (int argc, char** argv) {
         stereoDense.rectifyStereo(left_undistorted, right_undistorted, left_rect, right_rect);
 
 
-        cv::Mat merge = 0.5 * left_rect + 0.5 *right_rect;
 
+
+
+
+        cv::Mat merge = drawStereoRectify(left_rect, right_rect);
 //        cv::imshow("left", left_image);
         cv::imshow("left_undistorted", left_undistorted);
         cv::imshow("left_rect", left_rect);
