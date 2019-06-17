@@ -112,6 +112,8 @@ target_link_libraries(stereo_undistort_node
   ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
 )
 
+
+
 add_executable(depth_node src/nodes/depth_node.cpp)
 target_link_libraries(depth_node
   ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}

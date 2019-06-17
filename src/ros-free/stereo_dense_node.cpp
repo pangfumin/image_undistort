@@ -1,10 +1,12 @@
 #include <iostream>
+#include <fstream>
 #include "image_undistort/stereo_dense.h"
 #include "file-system-tools.h"
 
 #include <yaml-cpp/yaml.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core/eigen.hpp>
 
 void loadCameraParamsFromYamlNode(const YAML::Node& node, cv::Size& res,
                                   Eigen::Matrix<double, 4, 4>& T,
@@ -60,8 +62,18 @@ cv::Mat drawStereoRectify(const cv::Mat left, const cv::Mat right) {
 }
 int main (int argc, char** argv) {
     std::string fin = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/camchain-cam_stereo.yaml";
-    const std::string image0_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_2L_recorder";
-    const std::string image1_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_1R_recorder";
+
+    std::string rectify_out_file = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/rectified_camera_parameters.txt";
+
+    const std::string image0_path = "/home/pang/data/dataset/segway_outdoor/2019-06-05-16-45-28_forMap/image0_syn";
+    const std::string image1_path = "/home/pang/data/dataset/segway_outdoor/2019-06-05-16-45-28_forMap/image1_syn";
+
+    std::string save_folder = "/home/pang/data/dataset/segway_outdoor/2019-06-05-16-45-28_forMap";
+    auto image0_rect_folder = save_folder+ "/image0_syn_rect";
+    auto image1_rect_folder = save_folder+ "/image1_syn_rect";
+
+    std::ofstream rectify_out_ofs(rectify_out_file);
+
     YAML::Node yamlConfig = YAML::LoadFile(fin);
     YAML::Node node0  = yamlConfig["cam0"];
     YAML::Node node1  = yamlConfig["cam1"];
@@ -99,16 +111,32 @@ int main (int argc, char** argv) {
         return !common::compareNumericPartsOfStrings(a,b);
     });
 
+    if (!common::pathExists(image0_rect_folder)) {
+        common::createPath(image0_rect_folder);
+    }
+    if (!common::pathExists(image1_rect_folder)) {
+        common::createPath(image1_rect_folder);
+    }
 
-    cv::Size output_resolution  = left_camera_param_pair.getInputPtr()->resolution()/2;
+
+    cv::Size output_resolution  = left_camera_param_pair.getInputPtr()->resolution();
     Eigen::Matrix3d output_K;
-    output_K << K0(0,0)/2, 0, output_resolution.width/2,
-            0, K0(1,1)/2,  output_resolution.height/2,
+    output_K << K0(0,0), 0, output_resolution.width/2,
+            0, K0(1,1),  output_resolution.height/2,
             0,0,1;
 
     image_undistort::StereoDense stereoDense(left_camera_param_pair, right_camera_param_pair,
                                              output_resolution, output_K);
 
+
+    cv::Mat P0 = stereoDense.getP0();
+    cv::Mat P1 = stereoDense.getP1();
+    Eigen::Matrix<double ,3,4> eigenP0, eigenP1;
+    cv::cv2eigen(P0, eigenP0);
+    cv::cv2eigen(P1, eigenP1);
+    rectify_out_ofs << output_resolution.height << " " << output_resolution.width << std::endl;
+    rectify_out_ofs << eigenP0 << std::endl;
+    rectify_out_ofs << eigenP1 << std::endl;
 
     for (int i=0; i < right_image_filenames.size(); i++ ) {
         std::cout << right_image_filenames.at(i) << std::endl;
@@ -125,15 +153,20 @@ int main (int argc, char** argv) {
         stereoDense.undistortStereo(left_image, right_image, left_undistorted, right_undistorted);
         stereoDense.rectifyStereo(left_undistorted, right_undistorted, left_rect, right_rect);
 
+//        cv::Mat disparity, disparity8;
+//        stereoDense.calcDisparityImage(left_rect, right_rect, disparity);
+//        disparity.convertTo(disparity, CV_32F, 1.0/16);
+//        disparity.convertTo(disparity8, CV_8UC1);
 
+        std::string path, file;
+        common::splitPathAndFilename(left_image_filenames.at(i), &path, &file);
+        std::string left_save_rect_file = image0_rect_folder + "/" + file;
+        std::string right_save_rect_file = image1_rect_folder + "/" + file;
 
-        cv::Mat disparity, disparity8;
-        stereoDense.calcDisparityImage(left_rect, right_rect, disparity);
-        disparity.convertTo(disparity, CV_32F, 1.0/16);
-        disparity.convertTo(disparity8, CV_8UC1);
-
-
-
+//
+//        cv::imwrite(left_save_rect_file, left_rect);
+//        cv::imwrite(right_save_rect_file, right_rect);
+//
 
         cv::Mat merge = drawStereoRectify(left_rect, right_rect);
 ////        cv::imshow("left", left_image);
@@ -142,9 +175,14 @@ int main (int argc, char** argv) {
 ////        cv::imshow("right", right_image);
 //        cv::imshow("right_undistorted", right_undistorted);
 //        cv::imshow("right_rect", right_rect);
-        cv::imshow("merge", merge);
-        cv::imshow("disparity8", disparity8);
-        cv::waitKey(1000);
+
+
+        cv::Size resize(merge.cols/2, merge.rows/2);
+        cv::Mat dst;
+        cv::resize(merge, dst, resize);
+        cv::imshow("merge", dst);
+//        cv::imshow("disparity8", disparity8);
+        cv::waitKey(10);
     }
 
 

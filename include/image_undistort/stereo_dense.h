@@ -45,6 +45,9 @@ namespace  image_undistort{
                 const cv::Mat& left_image, const cv::Mat& right_image,
                 cv::Mat& disparity) const;
 
+        cv::Mat getP0() const {return P0_; }
+        cv::Mat getP1() const {return P1_; }
+
     private:
         CameraParametersPair left_camera_param_pair_;
         CameraParametersPair right_camera_param_pair_;
