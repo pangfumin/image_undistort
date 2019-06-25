@@ -132,6 +132,13 @@ target_link_libraries(stereo_dense_node
         ${PROJECT_NAME}_lib
         )
 
+add_executable(stereo_dense_MultiVehicleStereo_node src/ros-free/stereo_dense_MultiVehicleStereo_node.cpp)
+target_link_libraries(stereo_dense_MultiVehicleStereo_node
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${YAML_CPP_LIBRARIES}
+        ${PROJECT_NAME}_lib
+        )
+
+
 add_executable(stereo_calib_node src/ros-free/stereo_calib.cpp)
 target_link_libraries(stereo_calib_node
         ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${YAML_CPP_LIBRARIES}
