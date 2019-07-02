@@ -13,12 +13,19 @@ void loadCameraParamsFromYamlNode(const YAML::Node& node, cv::Size& res,
                                   Eigen::Matrix<double, 3, 3>& K,
                                   std::vector<double>& D,
                                   image_undistort::DistortionModel& distortion_model) {
+    YAML::Node d = node["distortion_coeffs"];
     const std::string distortion_model_string = node["distortion_model"].as<std::string>();
     if (distortion_model_string == "fov") {
         distortion_model = image_undistort::DistortionModel::FOV;
+        D.push_back(d[0].as<double>());
+    } else if (distortion_model_string == "radtan"){
+        distortion_model = image_undistort::DistortionModel::RADTAN;
+        D.push_back(d[0].as<double>());
+        D.push_back(d[1].as<double>());
+        D.push_back(d[2].as<double>());
+        D.push_back(d[3].as<double>());
     }
-    YAML::Node d = node["distortion_coeffs"];
-    D.push_back(d[0].as<double>());
+
     YAML::Node resolution = node["resolution"];
     res = cv::Size(resolution[0].as<int>(), resolution[1].as<int>());
 
@@ -61,7 +68,7 @@ cv::Mat drawStereoRectify(const cv::Mat left, const cv::Mat right) {
 
 }
 int main (int argc, char** argv) {
-    std::string fin = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/camchain-cam_stereo.yaml";
+    std::string fin = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/camchain.yaml";
 
     std::string rectify_out_file = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/rectified_camera_parameters.txt";
 
@@ -164,9 +171,9 @@ int main (int argc, char** argv) {
         std::string right_save_rect_file = image1_rect_folder + "/" + file;
 
 //
-//        cv::imwrite(left_save_rect_file, left_rect);
-//        cv::imwrite(right_save_rect_file, right_rect);
-//
+        cv::imwrite(left_save_rect_file, left_rect);
+        cv::imwrite(right_save_rect_file, right_rect);
+
 
         cv::Mat merge = drawStereoRectify(left_rect, right_rect);
 ////        cv::imshow("left", left_image);
