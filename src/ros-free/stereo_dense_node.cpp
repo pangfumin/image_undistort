@@ -171,9 +171,9 @@ int main (int argc, char** argv) {
         std::string right_save_rect_file = image1_rect_folder + "/" + file;
 
 //
-        cv::imwrite(left_save_rect_file, left_rect);
-        cv::imwrite(right_save_rect_file, right_rect);
-
+//        cv::imwrite(left_save_rect_file, left_rect);
+//        cv::imwrite(right_save_rect_file, right_rect);
+//
 
         cv::Mat merge = drawStereoRectify(left_rect, right_rect);
 ////        cv::imshow("left", left_image);

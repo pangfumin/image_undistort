@@ -32,7 +32,7 @@ void loadCameraParamsFromYamlNode(const YAML::Node& node, cv::Size& res,
 
     YAML::Node intrinsics = node["intrinsics"];
     K << intrinsics[0].as<double>(), 0, intrinsics[2].as<double>(),
-            0, intrinsics[1].as<double>(0), intrinsics[3].as<double>(),
+            0, intrinsics[1].as<double>(), intrinsics[3].as<double>(),
                     0,0,1;
     if (node["T_cn_cnm1"].IsDefined()) {
         for (int i = 0; i < 4; i++ ) {
