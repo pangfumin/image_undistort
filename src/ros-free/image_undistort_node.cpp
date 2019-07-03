@@ -31,8 +31,9 @@ void loadCameraParamsFromYamlNode(const YAML::Node& node, cv::Size& res,
 
     YAML::Node intrinsics = node["intrinsics"];
     K << intrinsics[0].as<double>(), 0, intrinsics[2].as<double>(),
-            0, intrinsics[0].as<double>(1), intrinsics[3].as<double>(),
+            0, intrinsics[1].as<double>(), intrinsics[3].as<double>(),
                     0,0,1;
+    std::cout << "K:\n" << K << std::endl;
     if (node["T_cn_cnm1"].IsDefined()) {
         for (int i = 0; i < 4; i++ ) {
             for (int j = 0; j < 4; j++) {
@@ -82,6 +83,9 @@ int main (int argc, char** argv) {
     auto image1_undistort_folder = save_folder+ "/image1_undistort";
     auto image2_undistort_folder = save_folder+ "/image2_undistort";
     auto image3_undistort_folder = save_folder+ "/image3_undistort";
+
+    std::string undistort_parameter_file = save_folder + "/undistort_parameter.txt";
+    std::ofstream undistort_parameter_ofs(undistort_parameter_file);
 
     if (!common::pathExists(image0_undistort_folder)) {
         common::createPath(image0_undistort_folder);
@@ -170,6 +174,13 @@ int main (int argc, char** argv) {
             0, K0(1,1),  output_resolution.height/2,
             0,0,1;
 
+    undistort_parameter_ofs << K0(0,0) << " " << K0(1,1)
+                        << " " <<  output_resolution.width/2 << " " << output_resolution.height/2 << std::endl;
+
+    std::cout  << K0(0,0) << " " << K0(1,1)
+                            << " " <<  output_resolution.width/2 << " " << output_resolution.height/2 << std::endl;
+
+
     camera0_param_pair.setOutputCameraParameters(output_resolution,camera0_param_pair.getInputPtr()->T(),output_K);
     camera1_param_pair.setOutputCameraParameters(output_resolution,camera0_param_pair.getInputPtr()->T(),output_K);
     camera2_param_pair.setOutputCameraParameters(output_resolution,camera0_param_pair.getInputPtr()->T(),output_K);
@@ -201,10 +212,10 @@ int main (int argc, char** argv) {
         undistorter0->undistortImage(image2, &image2_undistort);
         undistorter0->undistortImage(image3, &image3_undistort);
 
-        cv::imshow("image0_undistort", image0_undistort);
-        cv::imshow("image1_undistort", image1_undistort);
-        cv::imshow("image2_undistort", image2_undistort);
-        cv::imshow("image3_undistort", image3_undistort);
+//        cv::imshow("image0_undistort", image0_undistort);
+//        cv::imshow("image1_undistort", image1_undistort);
+//        cv::imshow("image2_undistort", image2_undistort);
+//        cv::imshow("image3_undistort", image3_undistort);
 
         cv::waitKey(1);
 
@@ -218,13 +229,14 @@ int main (int argc, char** argv) {
         std::string save_undistort_file3 = image3_undistort_folder + "/" + file;
 
 ////
-//        cv::imwrite(save_undistort_file0, image0_undistort);
-//        cv::imwrite(save_undistort_file1, image1_undistort);
-//        cv::imwrite(save_undistort_file2, image2_undistort);
-//        cv::imwrite(save_undistort_file3, image3_undistort);
+        cv::imwrite(save_undistort_file0, image0_undistort);
+        cv::imwrite(save_undistort_file1, image1_undistort);
+        cv::imwrite(save_undistort_file2, image2_undistort);
+        cv::imwrite(save_undistort_file3, image3_undistort);
+
 
 //
-//
+        std::cout << i << "/" << image0_filenames.size() << std::endl;
 //        cv::Size resize(merge.cols/2, merge.rows/2);
 //        cv::Mat dst;
 //        cv::resize(merge, dst, resize);
