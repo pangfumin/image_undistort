@@ -1,4 +1,4 @@
-#include "image_undistort/stereo_dense.h"
+#include "image_undistort/ros-free/stereo_dense.h"
 #include "image_undistort/camera_parameters.h"
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>

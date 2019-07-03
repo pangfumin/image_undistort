@@ -132,6 +132,14 @@ target_link_libraries(stereo_dense_node
         ${PROJECT_NAME}_lib
         )
 
+add_executable(image_undistort_node_nonros src/ros-free/image_undistort_node.cpp)
+target_link_libraries(image_undistort_node_nonros
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${YAML_CPP_LIBRARIES}
+        ${PROJECT_NAME}_lib
+        )
+
+
+
 add_executable(stereo_dense_MultiVehicleStereo_node src/ros-free/stereo_dense_MultiVehicleStereo_node.cpp)
 target_link_libraries(stereo_dense_MultiVehicleStereo_node
         ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${YAML_CPP_LIBRARIES}

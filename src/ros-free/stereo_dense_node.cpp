@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include "image_undistort/stereo_dense.h"
+#include "image_undistort/ros-free/stereo_dense.h"
 #include "file-system-tools.h"
 
 #include <yaml-cpp/yaml.h>
