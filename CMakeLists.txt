@@ -102,6 +102,8 @@ target_link_libraries(image_undistort_node
   ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
 )
 
+
+
 add_executable(stereo_info_node src/nodes/stereo_info_node.cpp)
 target_link_libraries(stereo_info_node
   ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
@@ -138,6 +140,11 @@ target_link_libraries(image_undistort_node_nonros
         ${PROJECT_NAME}_lib
         )
 
+add_executable(mono_undistort_node src/ros-free/mono_undistort_node.cpp)
+target_link_libraries(mono_undistort_node
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${YAML_CPP_LIBRARIES}
+        ${PROJECT_NAME}_lib
+        )
 
 
 add_executable(stereo_dense_MultiVehicleStereo_node src/ros-free/stereo_dense_MultiVehicleStereo_node.cpp)

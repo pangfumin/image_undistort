@@ -68,14 +68,14 @@ cv::Mat drawStereoRectify(const cv::Mat left, const cv::Mat right) {
 
 }
 int main (int argc, char** argv) {
-    std::string fin = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/camchain.yaml";
+    std::string fin = "/home/pang/kalibr_workspace/camchain.yaml";
 
     std::string rectify_out_file = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/rectified_camera_parameters.txt";
 
-    const std::string image0_path = "/home/pang/data/dataset/segway_outdoor/2019-06-05-16-45-28_forMap/image0_syn";
-    const std::string image1_path = "/home/pang/data/dataset/segway_outdoor/2019-06-05-16-45-28_forMap/image1_syn";
+    const std::string image0_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_2L_recorder";
+    const std::string image1_path = "/home/pang/data/dataset/segway_outdoor/cui_stereo_calib/newCamPics/Camera_1R_recorder";
 
-    std::string save_folder = "/home/pang/data/dataset/segway_outdoor/2019-06-05-16-45-28_forMap";
+    std::string save_folder = "/home/pang/data/dataset/segway_outdoor/test";
     auto image0_rect_folder = save_folder+ "/image0_syn_rect";
     auto image1_rect_folder = save_folder+ "/image1_syn_rect";
 
@@ -188,8 +188,10 @@ int main (int argc, char** argv) {
         cv::Mat dst;
         cv::resize(merge, dst, resize);
         cv::imshow("merge", dst);
+                cv::imwrite(left_save_rect_file, dst);
+
 //        cv::imshow("disparity8", disparity8);
-        cv::waitKey(10);
+        cv::waitKey(6000);
     }
 
 
